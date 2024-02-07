@@ -1,0 +1,48 @@
+--primera: todos los libros y sus autores
+SELECT titulo, Autores.nombre FROM Libros
+JOIN Autores
+ON Libros.autor_id = Autores.id;
+
+--segunda: títulos de libros publicados después de 1980
+SELECT titulo FROM Libros
+WHERE anio_publicacion > 1980;
+
+--tercera: nombre y país del autor del cuarto libro
+SELECT nombre, nacionalidad FROM Autores
+JOIN Libros
+ON Autores.id = Libros.id
+WHERE Libros.id = 4;
+
+--cuarta: libros de fantasía
+SELECT * FROM Libros
+WHERE categoria = "Fantasía";
+
+--quinta: ordenar los libros por publicación de forma ascendente
+SELECT * FROM Libros
+ORDER BY anio_publicacion ASC;
+
+--sexta: título y categoría de libros de autores británicos
+SELECT titulo, categoria FROM Libros
+JOIN Autores
+ON Libros.autor_id = Autores.id
+WHERE Autores.nacionalidad = "Británica";
+
+--séptima: promedio de años de publicación
+SELECT AVG(anio_publicacion) FROM Libros;
+
+--octava: lista de autores y cantidad de libros escritos
+SELECT nombre, COUNT(Libros.autor_id) AS [numero_de_libros] FROM Autores
+JOIN Libros
+ON Autores.id = Libros.autor_id
+GROUP BY Autores.id;
+
+--novena: libros y autores por orden alfabético del título
+SELECT titulo, Autores.nombre FROM Libros
+JOIN Autores
+ON Libros.autor_id = Autores.id
+ORDER BY Libros.titulo;
+
+--décima: títulos con nombre y nacionalidad de sus autores
+SELECT titulo, Autores.nombre, Autores.nacionalidad FROM Libros
+JOIN Autores
+ON Libros.autor_id = Autores.id;
