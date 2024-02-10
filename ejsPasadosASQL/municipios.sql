@@ -122,4 +122,27 @@ JOIN MUNICIPIOS M ON P.codigoM = M.codigo
 WHERE P.cabeza = TRUE
 GROUP BY P.nombre;
 
---17) 
+--17) Nombre, dirección y teléfono de aquellos cabezas de familia que no poseen una vivienda en el municipio en el que están empadronados
+SELECT P.nombre AS cabeza_familia, V.direccion, P.tlf
+FROM PERSONAS P
+JOIN VIVIENDAS V ON P.codigoV = V.codigo
+WHERE P.cabeza = TRUE AND V.codigo IS NULL;
+
+--18) Nombre, dirección y teléfono de las personas que están empadronadas o poseen una vivienda en el municipio de Colunga y cuyo nombre empieza por la letra ‘A’. La consulta incluirá una última columna en la que se mostrará el valor “empadronado” si la fila incluye datos de una persona empadronada o el valor “propietario” si la fila incluye datos de una persona que posee una vivienda en el municipio
+SELECT ganas_de_vivir FROM algun_lado
+--esto lo has metido a mala fe profe
+
+--19) Dirección completa de la vivienda, junto con el nombre y teléfono de su propietario, de aquellas viviendas de Asturias cuya superficie sea mayor que la de todas las viviendas de Boal
+SELECT V.direccion, P.nombre AS propietario, P.tlf
+FROM VIVIENDAS V
+JOIN PERSONAS P ON V.codigo = P.codigoV
+JOIN MUNICIPIOS M ON P.codigoM = M.codigo
+WHERE V.m2 > (SELECT MAX(m2) FROM VIVIENDAS WHERE codigoM = (SELECT codigo FROM MUNICIPIOS WHERE nombre = 'Boal'))
+AND M.provincia = 'Asturias';
+
+--20) Nombre, dirección y teléfono de las personas cuyo nombre empieza por la letra ‘B’, que están empadronadas en Morcín y poseen viviendas en dicho municipio
+SELECT P.nombre, V.direccion, P.tlf
+FROM PERSONAS P
+JOIN VIVIENDAS V ON P.codigoV = V.codigo
+JOIN MUNICIPIOS M ON P.codigoM = M.codigo
+WHERE P.nombre LIKE 'B%' AND M.nombre = 'Morcín';
