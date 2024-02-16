@@ -1,57 +1,99 @@
-CREATE TABLE VIVIENDAS(
-    codigo INT PRIMARY KEY AUTO_INCREMENT,
-    direccion VARCHAR(100) NOT NULL,
-    cp INT(5) NOT NULL,
-    m2 INT (3) NOT NULL
-);
+CREATE TABLE Municipios (
+    codigo INT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    provincia VARCHAR(50)
+    );
+ 
+CREATE TABLE Viviendas (
+    codigo INT PRIMARY KEY,
+    CP INT,
+    direccion VARCHAR(200),
+    m2 INT,
+    municipio INT,
+    FOREIGN KEY (municipio) REFERENCES Municipios(codigo)
+    );
+ 
+CREATE TABLE Personas (
+    DNI VARCHAR(9) PRIMARY KEY,
+    telefono INT,
+    nombre VARCHAR(50),
+    cabeza_familia VARCHAR(9),
+    vivienda INT,
+    FOREIGN KEY (cabeza_familia) REFERENCES Personas(DNI),
+    FOREIGN KEY (vivienda) REFERENCES Viviendas(codigo)
+    );
+ 
+CREATE TABLE Poseer (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    vivienda INT,
+    propietario VARCHAR(9),
+    FOREIGN KEY (vivienda) REFERENCES Viviendas(codigo),
+    FOREIGN KEY (propietario) REFERENCES Personas(DNI)
+    );
 
-CREATE TABLE MUNICIPIOS(
-    codigo INT PRIMARY KEY AUTO_INCREMENT,
-    nombre VARCHAR(100) NOT NULL,
-    provincia VARCHAR(20) NOT NULL
-);
+INSERT INTO Municipios (codigo, nombre, provincia) VALUES
+(1, 'Madrid', 'Madrid'),
+(2, 'Barcelona', 'Barcelona'),
+(3, 'Sevilla', 'Sevilla');
+ 
+INSERT INTO Viviendas (codigo, CP, direccion, m2, municipio) VALUES
+(1, 28001, 'Calle Gran Vía, 1', 100, 1),
+(2, 08001, 'Avenida Diagonal, 100', 120, 2),
+(3, 41001, 'Plaza de España, 5', 80, 3);
+ 
+INSERT INTO Personas (DNI, telefono, nombre, cabeza_familia, vivienda) VALUES
+('12345678A', 666555444, 'Juan Pérez', '12345678A', 1),
+('23456789B', 677666555, 'María García', '12345678A', 1),
+('34567890C', 688777666, 'Antonio López', '34567890C', 2),
+('45678901D', 699888777, 'Laura Martínez', '34567890C', 2),
+('56789012E', 600999888, 'Carlos Rodríguez', '56789012E', 3),
+('67890123F', 611000999, 'Sara Gómez', '56789012E', 3);
+ 
+INSERT INTO Poseer (vivienda, propietario) VALUES
+(1, '12345678A'),
+(1, '23456789B'),
+(2, '34567890C'),
+(2, '45678901D'),
+(3, '56789012E'),
+(3, '67890123F');
 
-CREATE TABLE PERSONAS(
-    DNI INT(8) PRIMARY KEY,
-    nombre VARCHAR(30) NOT NULL,
-    tlf INT(9) NOT NULL,
-    cabeza BOOLEAN NOT NULL,
-    codigoV INT,
-    codigoM INT,
-    FOREIGN KEY (codigoV) REFERENCES VIVIENDAS(codigo),
-    FOREIGN KEY (codigoM) REFERENCES MUNICIPIOS(codigo)
-);
-
-INSERT INTO MUNICIPIOS (nombre, provincia)
-VALUES ('Luarca', 'Asturias'), ('Valdés', 'Asturias'), ('Navia', 'Asturias'), ('Avilés', 'Asturias');
 
 --1) Nombre y teléfono de los habitantes de Luarca
-SELECT p.nombre, p.tlf FROM PERSONAS p, MUNICIPIOS m
-WHERE m.nombre = 'Luarca';
+SELECT nombre, telefono
+FROM Personas
+WHERE vivienda=(SELECT v.codigo
+                FROM Viviendas v JOIN Municipios m ON v.municipio = m.codigo
+                WHERE m.nombre='Luarca'); 
 
 --2) Nombre y teléfono de los habitantes del municipio de Valdés
 SELECT p.nombre, p.tlf FROM PERSONAS p, MUNICIPIOS m
 WHERE m.nombre = 'Valdés';
 
 --3) Dirección y metros cuadrados de las viviendas del municipio de Navia
-SELECT v.direccion, v.m2 FROM VIVIENDAS v, MUNICIPIOS p
-WHERE m.nombre = 'Navia';
+SELECT viviendas.direccion, viviendas.m2
+FROM viviendas
+JOIN municipios ON viviendas.municipio = municipios.codigo
+WHERE municipios.nombre = "Navia";
 
 --4) Nombre y teléfono de aquellas personas que poseen una vivienda en Navia
-SELECT p.nombre, p.tlf FROM PERSONAS p, MUNICIPIOS m
-WHERE m.nombre = 'Navia';
+SELECT p.nombre, p.telefono 
+FROM Personas p
+WHERE vivienda = (SELECT v.codigo
+                  FROM Viviendas)
 
 --5) De todas las viviendas del municipio de Avilés, su dirección, localidad y nombre del propietario.
-SELECT v.direccion, p.nombre, p.tlf
-FROM VIVIENDAS v, PERSONAS p, MUNICIPIOS m
-WHERE M.nombre = 'Avilés';
+SELECT v.direccion, pe.nombre
+FROM Viviendas v, personas pe
+WHERE v.municipio IN (
+    SELECT codigo 
+    FROM Municipios
+    WHERE nombre = "Avilés"
+)
+JOIN Poseer po ON pe.dni = po.propietario;
 
 --6) Nombre, dirección y teléfono de todos los cabeza de familia empadronados en el municipio de Tineo.
-SELECT P.nombre, V.direccion, P.tlf
-FROM PERSONAS P
-JOIN VIVIENDAS V ON P.codigoV = V.codigo
-JOIN MUNICIPIOS M ON P.codigoM = M.codigo
-WHERE M.nombre = 'Tineo' AND P.cabeza = TRUE;
+SELECT DISTINCT p.nombre, v.direccion, p.telefono
+FROM personas p, viviendas v, 
 
 --7) Dirección completa de todas las viviendas del municipio de Oviedo y nombre y teléfono de su propietario para todas aquellas que superan los 150 m2.
 SELECT V.direccion, P.nombre, P.tlf
